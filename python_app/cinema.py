@@ -45,6 +45,7 @@ class Room:
     wrap_angle: float            # abertura extra das paredes laterais (graus)
     side_panels: bool            # projeta imagem nas laterais? (ScreenX)
     accent: str                  # cor de destaque do formato
+    ideal_fov: float = 50.0      # FOV horizontal "perfeito" para o formato
 
     # ---- geometria por assento ------------------------------------------- #
     def seat_position(self, row: int, seat: int) -> Dict[str, float]:
@@ -94,19 +95,18 @@ class Room:
             v_fov=round(v_fov, 1),
             head_tilt=round(head_tilt, 1),
             off_axis=round(off_axis, 1),
-            score=self._score(h_fov, head_tilt, off_axis),
+            score=self._score(h_fov, head_tilt, off_axis, self.ideal_fov),
             **self._verdict(h_fov, head_tilt, off_axis),
         )
 
     # ---- heurísticas de qualidade ---------------------------------------- #
     @staticmethod
-    def _score(h_fov: float, head_tilt: float, off_axis: float) -> int:
+    def _score(h_fov: float, head_tilt: float, off_axis: float, ideal: float = 50.0) -> int:
         """Nota 0-100. Referência SMPTE/THX: ~50° de FOV é o ideal.
 
         Penalizamos telas grandes demais (fileiras da frente, cansaço visual),
         pequenas demais (fundo da sala), cabeça muito inclinada e desvio lateral.
         """
-        ideal = 50.0
         fov_penalty = abs(h_fov - ideal) * (1.5 if h_fov > ideal else 1.1)
         tilt_penalty = max(0.0, head_tilt - 15.0) * 2.2
         axis_penalty = max(0.0, abs(off_axis) - 12.0) * 1.6
@@ -177,7 +177,7 @@ ROOMS: Dict[str, Room] = {
         screen_width=26.0, screen_height=18.2,
         first_row_distance=9.0, row_depth=1.25, row_rise=0.42,
         rows=10, seats_per_row=14, seat_width=0.62,
-        wrap_angle=0.0, side_panels=False, accent="#ff2b2b",
+        wrap_angle=0.0, side_panels=False, accent="#ff2b2b", ideal_fov=62.0,
     ),
     "screenx": Room(
         slug="screenx",
@@ -186,7 +186,7 @@ ROOMS: Dict[str, Room] = {
         screen_width=18.0, screen_height=8.0,
         first_row_distance=8.0, row_depth=1.2, row_rise=0.38,
         rows=10, seats_per_row=14, seat_width=0.60,
-        wrap_angle=130.0, side_panels=True, accent="#ff5252",
+        wrap_angle=130.0, side_panels=True, accent="#ff5252", ideal_fov=55.0,
     ),
     "standard": Room(
         slug="standard",
@@ -195,7 +195,7 @@ ROOMS: Dict[str, Room] = {
         screen_width=14.0, screen_height=5.9,
         first_row_distance=7.5, row_depth=1.1, row_rise=0.30,
         rows=10, seats_per_row=14, seat_width=0.58,
-        wrap_angle=0.0, side_panels=False, accent="#b31217",
+        wrap_angle=0.0, side_panels=False, accent="#b31217", ideal_fov=42.0,
     ),
 }
 
