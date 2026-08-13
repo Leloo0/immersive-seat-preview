@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulador de Assento 3D — {{ room.name }} | CINE ROUGE</title>
+  <meta name="description"
+        content="Veja em 3D como a tela é enxergada de cada fileira antes de comprar o ingresso: IMAX, ScreenX 270° e sala standard." />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <!-- ================= CABEÇALHO ================= -->
+  <header class="topbar">
+    <a class="brand" href="/">CINE<span>ROUGE</span></a>
+    <nav class="formats" aria-label="Escolha do formato de sala">
+      {% for r in rooms %}
+      <a class="format-pill {{ 'is-active' if r.slug == room.slug }}"
+         href="/sala/{{ r.slug }}" data-slug="{{ r.slug }}">{{ r.name }}</a>
+      {% endfor %}
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================= PALCO 3D ================= -->
+    <section class="stage-wrap">
+      <!--
+        O "palco" é uma cena CSS 3D: um contêiner com `perspective` e três
+        painéis (esquerdo, central e direito) girados em torno do eixo Y.
+        As variáveis --scale/--yaw/--pitch/--wrap são escritas pelo JS a
+        partir dos números calculados no Python.
+      -->
+      <div class="stage" id="stage"
+           data-side-panels="{{ 'on' if room.side_panels else 'off' }}">
+        <div class="world" id="world">
+          <div class="panel panel-left"  aria-hidden="true"></div>
+          <div class="panel panel-center">
+            <div class="screen-glow"></div>
+          </div>
+          <div class="panel panel-right" aria-hidden="true"></div>
+        </div>
+        <!-- silhueta das poltronas da frente, dá profundidade à cena -->
+        <div class="foreground-seats" aria-hidden="true"></div>
+        <div class="stage-hud">
+          <span id="hudSeat">Fileira {{ best.row_label }} · Poltrona {{ best.seat_label }}</span>
+          <span id="hudFov">{{ best.total_fov }}° de campo de visão</span>
+        </div>
+      </div>
+
+      <div class="stage-controls">
+        <button type="button" class="ghost-btn" id="lookLeft">◀ olhar</button>
+        <button type="button" class="ghost-btn" id="toggleFilm">▶ rodar cena</button>
+        <button type="button" class="ghost-btn" id="lookRight">olhar ▶</button>
+      </div>
+    </section>
+
+    <!-- ================= PAINEL DE ANÁLISE ================= -->
+    <section class="analysis" aria-live="polite">
+      <h1 class="title">{{ room.name }}</h1>
+      <p class="tagline">{{ room.tagline }}</p>
+
+      <p class="headline" id="headline">{{ best.headline }}</p>
+      <p class="detail" id="detail">{{ best.detail }}</p>
+
+      <div class="score">
+        <div class="score-bar"><i id="scoreFill" style="width: {{ best.score }}%"></i></div>
+        <strong id="scoreValue">{{ best.score }}</strong><span>/100 imersão</span>
+      </div>
+
+      <dl class="metrics">
+        <div><dt>Distância</dt><dd id="mDistance">{{ best.distance }} m</dd></div>
+        <div><dt>Campo de visão</dt><dd id="mFov">{{ best.total_fov }}°</dd></div>
+        <div><dt>Ângulo vertical</dt><dd id="mTilt">{{ best.head_tilt }}°</dd></div>
+        <div><dt>Desvio lateral</dt><dd id="mAxis">{{ best.off_axis }}°</dd></div>
+      </dl>
+      <p class="note" id="note">{{ best.note }}</p>
+    </section>
+
+    <!-- ================= MAPA DE ASSENTOS ================= -->
+    <section class="seatmap-wrap">
+      <div class="screen-hint">TELA</div>
+      <div class="seatmap" id="seatmap" role="grid" aria-label="Mapa de assentos">
+        {% for row in grid %}
+        <div class="seat-row" role="row">
+          <span class="row-label">{{ row[0].row_label }}</span>
+          {% for s in row %}
+          <button type="button" role="gridcell"
+                  class="seat {{ 'is-selected' if s.row == best.row and s.seat == best.seat }}"
+                  data-row="{{ s.row }}" data-seat="{{ s.seat }}"
+                  style="--heat: {{ s.score }}"
+                  aria-label="Fileira {{ s.row_label }} poltrona {{ s.seat_label }}, imersão {{ s.score }}">
+          </button>
+          {% endfor %}
+          <span class="row-label">{{ row[0].row_label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="legend">
+        <i class="dot low"></i> menos imersivo
+        <i class="dot mid"></i> bom
+        <i class="dot high"></i> assento de referência
+      </p>
+    </section>
+  </main>
+
+  <!-- Estado inicial serializado: evita um round-trip no primeiro render. -->
+  <script id="bootstrap" type="application/json">
+    {{ {'room': room, 'grid': grid, 'best': best} | tojson }}
+  </script>
+  <script src="{{ url_for('static', filename='js/simulator.js') }}" defer></script>
+</body>
+</html>
