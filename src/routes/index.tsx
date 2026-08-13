@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [slug, setSlug] = useState(ROOMS[0].slug);
+  const [slug, setSlug] = useState(ROOMS[0]!.slug);
   const [playing, setPlaying] = useState(false);
   const [peek, setPeek] = useState(0);
 
@@ -38,7 +38,7 @@ function Index() {
 
   // Assento atual: começa no de maior nota da sala escolhida.
   const [seatRef, setSeatRef] = useState<{ row: number; seat: number } | null>(null);
-  const view: SeatView = seatRef ? grid[seatRef.row][seatRef.seat] : bestSeat(grid);
+  const view: SeatView = seatRef ? grid[seatRef.row]![seatRef.seat]! : bestSeat(grid);
 
   const pick = useCallback((row: number, seat: number) => {
     setSeatRef({ row, seat });
@@ -187,9 +187,9 @@ function Index() {
           </div>
           <div className="grid justify-center gap-1.5">
             {grid.map((row) => (
-              <div key={row[0].rowLabel} className="flex items-center justify-center gap-1.5">
+              <div key={row[0]!.rowLabel} className="flex items-center justify-center gap-1.5">
                 <span className="w-5 text-center text-[0.7rem]"
-                  style={{ color: "var(--cine-ash-dim)" }}>{row[0].rowLabel}</span>
+                  style={{ color: "var(--cine-ash-dim)" }}>{row[0]!.rowLabel}</span>
                 {row.map((s) => (
                   <button
                     key={s.seat}
@@ -202,7 +202,7 @@ function Index() {
                   />
                 ))}
                 <span className="w-5 text-center text-[0.7rem]"
-                  style={{ color: "var(--cine-ash-dim)" }}>{row[0].rowLabel}</span>
+                  style={{ color: "var(--cine-ash-dim)" }}>{row[0]!.rowLabel}</span>
               </div>
             ))}
           </div>
