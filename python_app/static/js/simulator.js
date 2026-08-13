@@ -20,7 +20,7 @@
   /** Converte a análise de um assento nas variáveis CSS do palco. */
   function paintStage(view) {
     // Escala: quanto mais perto, maior a tela. Normalizada pela 5ª fileira.
-    const scale = Math.min(2.2, 26 / view.distance);
+    const scale = Math.max(0.55, Math.min(1.35, 20 / view.distance));
     stage.style.setProperty("--scale", scale.toFixed(3));
     // Assento fora do eixo => a cabeça vira; invertemos o sinal porque
     // girar a cena para a direita simula olhar para a esquerda.

@@ -47,7 +47,7 @@ function Index() {
 
   // Números perceptuais -> variáveis CSS da cena 3D.
   const stageVars = {
-    "--scale": Math.min(2.2, 26 / view.distance).toFixed(3),
+    "--scale": Math.max(0.55, Math.min(1.35, 20 / view.distance)).toFixed(3),
     "--yaw": `${(-view.offAxis * 0.6 + peek).toFixed(2)}deg`,
     "--pitch": `${(view.headTilt * 0.35).toFixed(2)}deg`,
     "--wrap": room.sidePanels
